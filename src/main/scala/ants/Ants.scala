@@ -1,0 +1,4 @@
+package ants
+
+object Ants
+
