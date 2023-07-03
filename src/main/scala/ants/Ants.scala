@@ -92,40 +92,9 @@ object Ants {
    * @return
    */
   def modelStep(model: Ants): Ants = {
-    import model._
-    val nextAnts = ants.map{ant =>
-      if (time <= ant.departureTime) ant
-      else {
-        if (ant.foodCarried == 0.0) {
-          // look for food
-          if (food(ant)>0) {
-            // pick up food: modify food state var
-            println(s"Ant ${ant.departureTime} picking up food")
-            val (xi, yi) = (math.floor(ant.x).toInt, math.floor(ant.y).toInt)
-            model.food(xi)(yi) = model.food(xi)(yi) - 1.0
-            println(s"total food remaining = ${model.food.flatten.sum}")
-            ant.copy(foodCarried = ant.foodCarried + 1.0, angle = (ant.angle + 180.0) % 360.0 )
-          } else {
-            // uphill chemical
-            val c = chemical(ant)
-            if (c >= 0.05&&c < 2) // FIXME hardcoded parameters
-              ant.uphill(model.chemical) 
-            else ant
-          }
-        } else {
-          // return to nest
-          if (inNest(ant)) {
-            // drop food and make a turn
-            ant.copy(foodCarried = 0.0, angle =  (ant.angle + 180.0) % 360.0 )
-          } else {
-            // drop chemical and head towards nest
-            val (xi, yi) = (math.floor(ant.x).toInt, math.floor(ant.y).toInt)
-            model.chemical(xi)(yi) = model.chemical(xi)(yi) + chemicalDropUnit
-            ant.uphill(model.nestScent)
-          }
-        }.wiggle.fwd(1.0)
-      }
-    }
+    
+    val nextAnts = model.ants.map(Ant.antActions(_, model))
+    
 
     val nextStep = model.copy(ants = nextAnts)
     chemicals(nextStep)
