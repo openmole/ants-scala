@@ -55,13 +55,15 @@ case class Ants(
 
   def inNest(ant: Ant): Boolean = inNest(math.floor(ant.x).toInt)(math.floor(ant.y).toInt)
 
-  def totalFood: Double = food.flatten.sum
-
   def env(otherModel: Ants): Ants = {
     this.chemical = otherModel.chemical
     this.food = otherModel.food
     this
   }
+
+  def totalFood: Double = food.flatten.sum
+
+  def avgAntPosition: (Double, Double) = (this.ants.map(_.x).sum/this.ants.length.toDouble, this.ants.map(_.y).sum/this.ants.length.toDouble)
 
 }
 
@@ -100,11 +102,11 @@ object Ants {
    * @return
    */
   def modelStep(model: Ants)(implicit rng: Random): Ants = {
-    println(s"=====Step ${model.time}=====\nTotal food = ${model.totalFood}")
+    println(s"=====Step ${model.time}=====\nTotal food = ${model.totalFood}\nAvg pos = ${model.avgAntPosition}")
     val nextAnts = model.ants.map(Ant.antActions(_, model))
     val nextStep = model.copy(ants = nextAnts).env(model)
     chemicals(nextStep)
-    nextStep.copy(time = nextStep.time + 1)
+    nextStep.copy(time = nextStep.time + 1).env(nextStep)
   }
 
   /**
@@ -161,8 +163,8 @@ object Ants {
   }
 
   def modelRun(model: Ants)(implicit rng: Random): Ants = {
-    val s0 = modelStep(setup(model))
-    Iterator.iterate(s0)(modelStep).takeWhile(_.totalFood>0).take(1).toSeq.last
+    val s0 = setup(model)
+    Iterator.iterate(s0)(modelStep).take(100).toSeq.last
   }
 
 
