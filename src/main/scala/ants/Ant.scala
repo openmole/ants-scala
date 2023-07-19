@@ -58,7 +58,7 @@ case class Ant(
 object Ant {
 
 
-  def antActions(ant: Ant, model: Ants): Ant = {
+  def antActions(ant: Ant, model: Ants)(implicit rng: Random): Ant = {
     import model._
     if (time <= ant.departureTime) ant
     else {
@@ -75,7 +75,7 @@ object Ant {
           // uphill chemical
           val c = chemical(ant)
           if (c >= 0.05 && c < 2) // FIXME hardcoded parameters
-            ant.uphill(model.chemical)
+            ant.uphill(model.chemical)(model)
           else ant
         }
       } else {
@@ -87,9 +87,9 @@ object Ant {
           // drop chemical and head towards nest
           val (xi, yi) = (math.floor(ant.x).toInt, math.floor(ant.y).toInt)
           model.chemical(xi)(yi) = model.chemical(xi)(yi) + chemicalDropUnit
-          ant.uphill(model.nestScent)
+          ant.uphill(model.nestScent)(model)
         }
-      }.wiggle.fwd(1.0)
+      }.wiggle(rng,model).fwd(1.0)
     }
   }
 

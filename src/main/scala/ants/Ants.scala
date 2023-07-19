@@ -54,7 +54,15 @@ case class Ants(
   def chemical(ant: Ant): Double = chemical(math.floor(ant.x).toInt)(math.floor(ant.y).toInt)
 
   def inNest(ant: Ant): Boolean = inNest(math.floor(ant.x).toInt)(math.floor(ant.y).toInt)
-  
+
+  def totalFood: Double = food.flatten.sum
+
+  def env(otherModel: Ants): Ants = {
+    this.chemical = otherModel.chemical
+    this.food = otherModel.food
+    this
+  }
+
 }
 
 
@@ -91,14 +99,12 @@ object Ants {
    * @param model
    * @return
    */
-  def modelStep(model: Ants): Ants = {
-    
+  def modelStep(model: Ants)(implicit rng: Random): Ants = {
+    println(s"=====Step ${model.time}=====\nTotal food = ${model.totalFood}")
     val nextAnts = model.ants.map(Ant.antActions(_, model))
-    
-
-    val nextStep = model.copy(ants = nextAnts)
+    val nextStep = model.copy(ants = nextAnts).env(model)
     chemicals(nextStep)
-    nextStep
+    nextStep.copy(time = nextStep.time + 1)
   }
 
   /**
@@ -106,7 +112,57 @@ object Ants {
    * @param ants
    */
   def chemicals(model: Ants): Unit = {
+    diffuse(model.diffusionRate, model)
+    evaporate(model.evaporationRate, model)
+  }
 
+  def diffuse(diffusionRate: Double, model: Ants): Unit = {
+    // FIXME cloning is not necessary?
+    val newVals = model.chemical.clone()
+    val (height,width) = (model.chemical.length,model.chemical(0).length)
+
+    for (i <- model.chemical.indices; j <- model.chemical(0).indices) {
+      val d = model.chemical(i)(j)
+      if (!d.isNaN) {
+        if (i >= 1) {
+          newVals(i - 1)(j) = newVals(i - 1)(j) + (diffusionRate / 8) * d
+        }
+        if (i < height - 1) {
+          newVals(i + 1)(j) = newVals(i + 1)(j) + (diffusionRate / 8) * d
+        }
+        if (j >= 1) {
+          newVals(i)(j - 1) = newVals(i)(j - 1) + (diffusionRate / 8) * d
+        }
+        if (j < width - 1) {
+          newVals(i)(j + 1) = newVals(i)(j + 1) + (diffusionRate / 8) * d
+        }
+        if (i >= 1 && j >= 1) {
+          newVals(i - 1)(j - 1) = newVals(i - 1)(j - 1) + (diffusionRate / 8) * d
+        }
+        if (i >= 1 && j < width - 1) {
+          newVals(i - 1)(j + 1) = newVals(i - 1)(j + 1) + (diffusionRate / 8) * d
+        }
+        if (i < height - 1 && j >= 1) {
+          newVals(i + 1)(j - 1) = newVals(i + 1)(j - 1) + (diffusionRate / 8) * d
+        }
+        if (i < height - 1 && j < width - 1) {
+          newVals(i + 1)(j + 1) = newVals(i + 1)(j + 1) + (diffusionRate / 8) * d
+        }
+        newVals(i)(j) = newVals(i)(j) - diffusionRate * d
+      }
+    }
+    model.chemical = newVals
+  }
+
+  def evaporate(evaporationRate: Double, model: Ants): Unit = {
+    for (i <- model.chemical.indices; j <- model.chemical(0).indices) {
+      model.chemical(i)(j) = model.chemical(i)(j)*(1 - evaporationRate)
+    }
+  }
+
+  def modelRun(model: Ants)(implicit rng: Random): Ants = {
+    val s0 = modelStep(setup(model))
+    Iterator.iterate(s0)(modelStep).takeWhile(_.totalFood>0).take(1).toSeq.last
   }
 
 
