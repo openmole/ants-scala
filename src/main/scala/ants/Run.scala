@@ -2,7 +2,7 @@ package ants
 
 import scala.util.Random
 
-object Run extends App {
+object Run extends App:
 
   implicit val rng: Random = new Random
 
@@ -16,4 +16,4 @@ object Run extends App {
 
   val res = Ants.modelRun(model)
 
-}
+  println(res.ants)
