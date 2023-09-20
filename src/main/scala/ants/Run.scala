@@ -2,18 +2,13 @@ package ants
 
 import scala.util.Random
 
-object Run extends App:
-
+@main def model =
   implicit val rng: Random = new Random
 
   val model = Ants(
-    worldWidth = 100,
-    worldHeight = 100,
-    population = 100,
+    population = 125,
     diffusionRate = 0.5,
     evaporationRate = 0.2
   )
 
-  val res = Ants.modelRun(model)
-
-  println(res.ants)
+  val res = Ants.modelRun(model, 1000)
