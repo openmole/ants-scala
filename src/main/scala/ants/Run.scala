@@ -1,5 +1,7 @@
 package ants
 
+import ants.Ants.totalFood
+
 import scala.util.Random
 
 @main def model =
@@ -18,11 +20,13 @@ import scala.util.Random
       val model = Ants(
         population = 125,
         diffusionRate = 0.5,
-        evaporationRate = 0.2,
-        //    worldWidth = 30,
-        //    worldHeight = 30,
-        //    foodSourceRadius = 2
+        evaporationRate = 0.1,
+        worldWidth = 70,
+        worldHeight = 70,
+        foodSourceRadius = 5,
+        chemicalMin = 0.0
       )
-      Ants.modelRun(model, 1000)
+      val res = Ants.modelRun(model, 1000)
+      //println(totalFood(res))
   val end = System.currentTimeMillis()
   println(end - time)

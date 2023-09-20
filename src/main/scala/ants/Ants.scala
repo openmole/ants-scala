@@ -34,10 +34,10 @@ case class Ants(
   ants: Seq[Ant],
   nestScent: Array[Array[Double]],
   inNest: Array[Array[Boolean]],
-  neighborhoodCache: Array[Array[Array[(Int, Int)]]],
-//  antChemicalMin: Double,
-//  antChemicalMax: Double,
-  chemicalDiffusionMin: Double,
+  neighborhoodCache: Array[Array[Array[Array[Int]]]],
+  //  antChemicalMin: Double,
+  //  antChemicalMax: Double,
+  chemicalMin: Double,
   var chemical: Array[Array[Double]],
   var food: Array[Array[Int]])
 
@@ -56,7 +56,7 @@ object Ants:
    foodSourceLocations: Array[(Double, Double)] = Array((0.8, 0.5), (0.2, 0.2), (0.1, 0.9)),
    foodSourceRadius: Double = 5.0,
    chemicalDropUnit: Double = 60.0,
-   chemicalDiffusionMin: Double = 10e-2)(using rng: Random) =
+   chemicalMin: Double = 0.0)(using rng: Random) =
 
     val xc: Double = worldWidth.toDouble / 2.0
     val yc: Double = worldHeight.toDouble / 2.0
@@ -95,7 +95,7 @@ object Ants:
 
     val neighborhoodCache =
       Array.tabulate(worldWidth, worldHeight): (i, j) =>
-        Ants.neighbors(i, j, worldWidth, worldHeight)
+        Ants.neighbors(i, j, worldWidth, worldHeight).map((x, y) => Array(x, y))
 
     new Ants(
       diffusionRate = diffusionRate,
@@ -111,7 +111,7 @@ object Ants:
       neighborhoodCache = neighborhoodCache,
       chemical = chemical,
       food = food,
-      chemicalDiffusionMin = chemicalDiffusionMin)
+      chemicalMin = chemicalMin)
 
 
   /**
@@ -177,13 +177,15 @@ object Ants:
     loop(0, _ < model.worldWidth, _ + 1): i =>
       loop(0, _ < model.worldHeight, _ + 1): j =>
         val d = model.chemical(i)(j)
-        if d > model.chemicalDiffusionMin
+        if d > 0
         then
           val allN = model.neighborhoodCache(i)(j)
           val diffused = (d * model.diffusionRate) / allN.length
 
           loop(0, _ < allN.length, _ + 1): n =>
-            val (nx, ny) = allN(n)
+            val curN = allN(n)
+            val nx = curN(0)
+            val ny = curN(1)
             newVals(nx)(ny) = newVals(nx)(ny) + diffused
 
         newVals(i)(j) = d - (d * model.diffusionRate)
@@ -196,7 +198,10 @@ object Ants:
   def evaporate(model: Ants): Unit =
     loop(0, _ < model.worldWidth, _ + 1): i =>
       loop(0, _ < model.worldHeight, _ + 1): j =>
-        model.chemical(i)(j) = model.chemical(i)(j) * (1 - model.evaporationRate)
+        val chem = model.chemical(i)(j)
+        if chem < model.chemicalMin
+        then model.chemical(i)(j) = 0.0
+        else model.chemical(i)(j) = model.chemical(i)(j) * (1 - model.evaporationRate)
 
   def modelRun(model: Ants, step: Int)(implicit rng: Random): Ants =
     Iterator.iterate(model)(modelStep).drop(step - 1).next()
