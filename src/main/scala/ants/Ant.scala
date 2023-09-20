@@ -13,7 +13,7 @@ case class Ant(
 
 object Ant:
 
-  def setAngle(ant: Ant, angle: Double) =
+  inline def setAngle(ant: Ant, angle: Double) =
     ant.copy(angle = (angle % 360 + 360) % 360)
 
   /**
@@ -23,14 +23,15 @@ object Ant:
    * @param d
    * @return
    */
-  def fwd(ant: Ant, d: Double)(using Ants): Ant =
+  inline def fwd(ant: Ant, d: Double)(using Ants): Ant =
     if canMove(ant, d)
     then ant.copy(x = ant.x + d * Math.cos(Math.toRadians(ant.angle)), y = ant.y + d * Math.sin(Math.toRadians(ant.angle)))
     else ant
 
 
-  def canMove(ant: Ant, d: Double)(using model: Ants): Boolean =
-    val (xh, yh) = (ant.x + d * Math.cos(Math.toRadians(ant.angle)), ant.y + d * Math.sin(Math.toRadians(ant.angle)))
+  inline def canMove(ant: Ant, d: Double)(using model: Ants): Boolean =
+    val xh = ant.x + d * Math.cos(Math.toRadians(ant.angle))
+    val yh = ant.y + d * Math.sin(Math.toRadians(ant.angle))
     Ants.insideTheWord(xh, yh, model)
 
   // FIXME hardcoded wiggle parameters
@@ -80,10 +81,8 @@ object Ant:
           if Ants.food(model, ant.x, ant.y) > 0.0
           then
             // pick up food: modify food state var
-            println(s"Ant ${ant.departureTime} picking up food")
             val (xi, yi) = (Math.floor(ant.x).toInt, Math.floor(ant.y).toInt)
             model.food(xi)(yi) = model.food(xi)(yi) - 1
-            println(s"total food remaining = ${model.food.flatten.sum}")
             setAngle(ant.copy(foodCarried = ant.foodCarried + 1.0), ant.angle + 180.0)
           else
             // uphill chemical
@@ -93,7 +92,7 @@ object Ant:
             else ant
         else
           // return to nest
-          if inNest(ant)
+          if Ants.inNest(model, ant)
           then
             // drop food and make a turn
             setAngle(ant.copy(foodCarried = 0.0), ant.angle + 180.0)
