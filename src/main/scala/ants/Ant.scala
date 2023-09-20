@@ -47,7 +47,7 @@ object Ant:
 
     // in case of tie, minimise energy by not turning ; if same right and left: idem [not coded in netlogo: bias to the left in the model]
     def direction = Array(0.0, -45.0, 45.0).maxBy(d => fieldAtAngle(ant, 1.0, d, field))
-    ant.copy(angle = ant.angle + direction)
+    setAngle(ant, angle = ant.angle + direction)
 
   /**
    *

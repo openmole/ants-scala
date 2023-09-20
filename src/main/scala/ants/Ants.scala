@@ -71,6 +71,7 @@ object Ants:
     val inNest = Array.tabulate(worldWidth, worldHeight): (i, j) =>
       Math.sqrt(Math.pow(i.toDouble - xn * worldWidth, 2.0) + Math.pow(j.toDouble - yn * worldHeight, 2.0)) < nestRadius
 
+
     val nestScent =
       Array.tabulate(worldWidth, worldHeight): (i, j) =>
         nestMaxScent - Math.sqrt(Math.pow(i.toDouble - xn * worldWidth, 2.0) + Math.pow(j.toDouble - yn * worldHeight, 2.0))
@@ -86,6 +87,8 @@ object Ants:
         if foodSourceLocations.exists(overlapWithSource)
         then 1 + rng.nextInt(2)
         else 0
+
+    //println(food.map(_.mkString(" ")).mkString("\n"))
 
     // color: no display
 
@@ -164,7 +167,7 @@ object Ants:
     for
       ox <- -neighborhoodSize to neighborhoodSize
       oy <- -neighborhoodSize to neighborhoodSize
-      if ox != oy
+      if ox != 0 || oy != 0
       nx = x + ox
       ny = y + oy
       if insideTheWord(nx, ny, width, height)
@@ -180,15 +183,18 @@ object Ants:
         if d > 0
         then
           val allN = model.neighborhoodCache(i)(j)
-          val diffused = (d * model.diffusionRate) / allN.length
+
+          val diffused = (d * model.diffusionRate) / 8
+          var totalDiffused = 0.0
 
           loop(0, _ < allN.length, _ + 1): n =>
             val curN = allN(n)
             val nx = curN(0)
             val ny = curN(1)
+            totalDiffused += diffused
             newVals(nx)(ny) = newVals(nx)(ny) + diffused
 
-        newVals(i)(j) = d - (d * model.diffusionRate)
+          newVals(i)(j) = d - totalDiffused
 
     model.chemical = newVals
 
