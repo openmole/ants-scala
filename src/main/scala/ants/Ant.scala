@@ -69,7 +69,7 @@ object Ant:
    * @param field
    * @return
    */
-  inline def fieldAtAngle(ant: Ant, d: Double, beta: Double, field: Array[Array[Double]])(implicit model: Ants): Double =
+  def fieldAtAngle(ant: Ant, d: Double, beta: Double, field: Array[Array[Double]])(implicit model: Ants): Double =
     val am = Math.toRadians(angleModulo(ant.angle + beta))
     val (xi, yi) = (Math.floor(ant.x + d * Math.cos(am)).toInt, Math.floor(ant.y + d * Math.sin(am)).toInt)
     if Ants.insideTheWord(xi, yi, model)
