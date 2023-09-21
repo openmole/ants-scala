@@ -37,7 +37,6 @@ case class Ants(
   neighborhoodCache: Array[Array[Array[Array[Int]]]],
   //  antChemicalMin: Double,
   //  antChemicalMax: Double,
-  chemicalMin: Double,
   var chemical: Array[Array[Double]],
   var food: Array[Array[Int]])
 
@@ -55,8 +54,7 @@ object Ants:
    nestMaxScent: Double = 200.0,
    foodSourceLocations: Array[(Double, Double)] = Array((0.8, 0.5), (0.2, 0.2), (0.1, 0.9)),
    foodSourceRadius: Double = 5.0,
-   chemicalDropUnit: Double = 60.0,
-   chemicalMin: Double = 0.0)(using rng: Random) =
+   chemicalDropUnit: Double = 60.0)(using rng: Random) =
 
     val xc: Double = worldWidth.toDouble / 2.0
     val yc: Double = worldHeight.toDouble / 2.0
@@ -113,8 +111,7 @@ object Ants:
       inNest = inNest,
       neighborhoodCache = neighborhoodCache,
       chemical = chemical,
-      food = food,
-      chemicalMin = chemicalMin)
+      food = food)
 
 
   /**
@@ -162,17 +159,27 @@ object Ants:
     diffuse(model)
     evaporate(model)
 
-  def neighbors(x: Int, y: Int, width: Int, height: Int, neighborhoodSize: Int = 1) =
-    val buffer = mutable.ArrayBuffer[(Int, Int)]()
-    for
-      ox <- -neighborhoodSize to neighborhoodSize
-      oy <- -neighborhoodSize to neighborhoodSize
-      if ox != 0 || oy != 0
-      nx = x + ox
-      ny = y + oy
-      if insideTheWord(nx, ny, width, height)
-    do buffer += ((nx, ny))
-    buffer.toArray
+  def neighbors(x: Int, y: Int, width: Int, height: Int) =
+    Array(
+      (x - 1, y - 1),
+      (x - 1, y),
+      (x - 1, y + 1),
+      (x, y - 1),
+      (x, y + 1),
+      (x + 1, y -1),
+      (x + 1, y),
+      (x + 1, y + 1)
+    ).filter((x, y) => insideTheWord(x, y, width, height))
+//    val buffer = mutable.ArrayBuffer[(Int, Int)]()
+//    for
+//      ox <- -neighborhoodSize to neighborhoodSize
+//      oy <- -neighborhoodSize to neighborhoodSize
+//      if ox != 0 || oy != 0
+//      nx = x + ox
+//      ny = y + oy
+//      if insideTheWord(nx, ny, width, height)
+//    do buffer += ((nx, ny))
+//    buffer.toArray
 
   def diffuse(model: Ants): Unit =
     val newVals = Array.ofDim[Double](model.worldWidth, model.worldHeight)
@@ -180,18 +187,17 @@ object Ants:
     loop(0, _ < model.worldWidth, _ + 1): i =>
       loop(0, _ < model.worldHeight, _ + 1): j =>
         val d = model.chemical(i)(j)
-        if d > 0
-        then
-          var totalN = 0.0
-          val allN = model.neighborhoodCache(i)(j)
-          loop(0, _ < allN.length, _ + 1): n =>
-            val curN = allN(n)
-            val nx = curN(0)
-            val ny = curN(1)
-            totalN += newVals(nx)(ny)
 
-          // See https://github.com/NetLogo/NetLogo/blob/c02bff554418e513165332d095958b0c8e3f0fc7/netlogo-core/src/main/agent/Topology.scala#L159
-          newVals(i)(j) = d + model.diffusionRate * (totalN / 8 - d)
+        var totalN = 0.0
+        val allN = model.neighborhoodCache(i)(j)
+        loop(0, _ < allN.length, _ + 1): n =>
+          val curN = allN(n)
+          val nx = curN(0)
+          val ny = curN(1)
+          totalN += newVals(nx)(ny)
+
+        // See https://github.com/NetLogo/NetLogo/blob/c02bff554418e513165332d095958b0c8e3f0fc7/netlogo-core/src/main/agent/Topology.scala#L159
+        newVals(i)(j) = d + model.diffusionRate * (totalN / allN.length - d)
 
     model.chemical = newVals
 
@@ -202,9 +208,7 @@ object Ants:
     loop(0, _ < model.worldWidth, _ + 1): i =>
       loop(0, _ < model.worldHeight, _ + 1): j =>
         val chem = model.chemical(i)(j)
-        if chem < model.chemicalMin
-        then model.chemical(i)(j) = 0.0
-        else model.chemical(i)(j) = model.chemical(i)(j) * (1 - model.evaporationRate)
+        model.chemical(i)(j) = model.chemical(i)(j) * (1 - model.evaporationRate)
 
   def modelRun(model: Ants, step: Int)(implicit rng: Random): Ants =
     Iterator.iterate(model)(modelStep).drop(step - 1).next()

@@ -13,8 +13,9 @@ case class Ant(
 
 object Ant:
 
+  inline def angleModulo(a: Double) = (a % 360 + 360) % 360
   inline def setAngle(ant: Ant, angle: Double) =
-    ant.copy(angle = (angle % 360 + 360) % 360)
+    ant.copy(angle = angleModulo(angle))
 
   /**
    * need to check that does not get out of the world?
@@ -46,8 +47,18 @@ object Ant:
   def uphill(ant: Ant, field: Array[Array[Double]])(implicit model: Ants): Ant =
 
     // in case of tie, minimise energy by not turning ; if same right and left: idem [not coded in netlogo: bias to the left in the model]
-    def direction = Array(0.0, -45.0, 45.0).maxBy(d => fieldAtAngle(ant, 1.0, d, field))
-    setAngle(ant, angle = ant.angle + direction)
+    //def direction = Array(0.0, -45.0, 45.0).maxBy(d => fieldAtAngle(ant, 1.0, d, field))
+
+    val ahead = fieldAtAngle(ant, 1.0, 0.0, field)
+    val left = fieldAtAngle(ant, 1.0, -45.0, field)
+    val right = fieldAtAngle(ant, 1.0, 45.0, field)
+
+    if (right > ahead) || (left > ahead)
+    then
+      if right > left
+      then setAngle(ant, angle = ant.angle + 45)
+      else setAngle(ant, angle = ant.angle - 45)
+    else ant
 
   /**
    *
@@ -58,9 +69,9 @@ object Ant:
    * @param field
    * @return
    */
-  def fieldAtAngle(ant: Ant, d: Double, beta: Double, field: Array[Array[Double]])(implicit model: Ants): Double =
-    val (xi, yi) =
-      (Math.floor(ant.x + d * Math.cos(Math.toRadians(ant.angle + beta))).toInt, Math.floor(ant.y + d * Math.sin(Math.toRadians(ant.angle + beta))).toInt)
+  inline def fieldAtAngle(ant: Ant, d: Double, beta: Double, field: Array[Array[Double]])(implicit model: Ants): Double =
+    val am = Math.toRadians(angleModulo(ant.angle + beta))
+    val (xi, yi) = (Math.floor(ant.x + d * Math.cos(am)).toInt, Math.floor(ant.y + d * Math.sin(am)).toInt)
     if Ants.insideTheWord(xi, yi, model)
     then field(xi)(yi)
     else 0.0

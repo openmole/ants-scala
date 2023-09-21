@@ -19,8 +19,7 @@ import scala.util.Random
         evaporationRate = 0.1,
         worldWidth = 70,
         worldHeight = 70,
-        foodSourceRadius = 5,
-        chemicalMin = 0.0
+        foodSourceRadius = 5
       )
       val res = Ants.modelRun(model, 1000)
       totalFood(res)
@@ -41,8 +40,7 @@ import scala.util.Random
     evaporationRate = 0.1,
     worldWidth = 70,
     worldHeight = 70,
-    foodSourceRadius = 5,
-    chemicalMin = 0.0
+    foodSourceRadius = 5
   )
 
   Ants.modelConsoleDisplay(model, 1000)
