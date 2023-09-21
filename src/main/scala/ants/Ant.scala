@@ -93,7 +93,8 @@ object Ant:
           then
             // pick up food: modify food state var
             val (xi, yi) = (Math.floor(ant.x).toInt, Math.floor(ant.y).toInt)
-            model.food(xi)(yi) = model.food(xi)(yi) - 1
+            val f = model.food(xi)(yi)
+            model.food(xi)(yi) = f.copy(_2 = f._2 - 1)
             setAngle(ant.copy(foodCarried = ant.foodCarried + 1.0), ant.angle + 180.0)
           else
             // uphill chemical

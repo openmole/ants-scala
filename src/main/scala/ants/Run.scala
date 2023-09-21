@@ -14,8 +14,8 @@ import scala.util.Random
       i <- 0 until 100
     yield
       val model = Ants(
-        population = 50,
-        diffusionRate = 0.1,
+        population = 125,
+        diffusionRate = 0.5,
         evaporationRate = 0.1,
         worldWidth = 70,
         worldHeight = 70,
@@ -29,7 +29,21 @@ import scala.util.Random
   val end = System.currentTimeMillis()
   println(end - time)
 
+@main def curve =
+  implicit val rng: Random = new Random
 
+  val time = System.currentTimeMillis()
+
+  val model = Ants(
+    population = 125,
+    diffusionRate = 0.5,
+    evaporationRate = 0.1,
+    worldWidth = 70,
+    worldHeight = 70,
+    foodSourceRadius = 5
+  )
+  Ants.modelStates(model, 1000).zipWithIndex.foreach: (s, i) =>
+    if i % 10 == 0 then println(Ants.foodBySource(s).mkString(","))
 
 @main def display =
   implicit val rng: Random = new Random

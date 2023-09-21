@@ -38,7 +38,7 @@ case class Ants(
   //  antChemicalMin: Double,
   //  antChemicalMax: Double,
   var chemical: Array[Array[Double]],
-  var food: Array[Array[Int]])
+  var food: Array[Array[(Int, Int)]])
 
 
 object Ants:
@@ -81,9 +81,10 @@ object Ants:
         def overlapWithSource(x: Double, y: Double) =
           Math.sqrt(Math.pow(i - x * worldWidth, 2.0) + Math.pow(j - y * worldHeight, 2.0)) < foodSourceRadius
 
-        if foodSourceLocations.exists(overlapWithSource)
-        then 1 + rng.nextInt(2)
-        else 0
+        val source = foodSourceLocations.indexWhere(overlapWithSource)
+        if  source > -1
+        then source -> (1 + rng.nextInt(2))
+        else -1 -> 0
 
     //println(food.map(_.mkString(" ")).mkString("\n"))
 
@@ -91,7 +92,6 @@ object Ants:
 
     // 0 chemicals at setup
     val chemical = Array.fill(worldWidth, worldHeight)(0.0)
-
 
     val neighborhoodCache =
       Array.tabulate(worldWidth, worldHeight): (i, j) =>
@@ -119,8 +119,8 @@ object Ants:
    * @param ant
    * @return
    */
-  def food(ants: Ants, x: Double, y: Double): Double =
-    ants.food(Math.floor(x).toInt)(Math.floor(y).toInt)
+  def food(ants: Ants, x: Double, y: Double): Int =
+    ants.food(Math.floor(x).toInt)(Math.floor(y).toInt)._2
 
   def chemical(ants: Ants, x: Double, y: Double): Double =
     ants.chemical(Math.floor(x).toInt)(Math.floor(y).toInt)
@@ -128,7 +128,13 @@ object Ants:
   def inNest(ants: Ants, ant: Ant): Boolean =
     ants.inNest(Math.floor(ant.x).toInt)(Math.floor(ant.y).toInt)
 
-  def totalFood(ants: Ants): Double = ants.food.flatten.sum
+  def totalFood(ants: Ants): Int = ants.food.flatten.map(_._2).sum
+
+  def foodBySource(ants: Ants) =
+    for
+      i <- 0 until ants.foodSourceLocations.length
+    yield
+      ants.food.flatten.filter((s, _) => s == i).map((_, q) => q).sum
 
   def avgAntPosition(ants: Ants): (Double, Double) =
     (ants.ants.map(_.x).sum / ants.ants.length.toDouble, ants.ants.map(_.y).sum / ants.ants.length.toDouble)
@@ -212,6 +218,9 @@ object Ants:
   def modelRun(model: Ants, step: Int)(implicit rng: Random): Ants =
     Iterator.iterate(model)(modelStep).drop(step - 1).next()
 
+  def modelStates(model: Ants, step: Int)(implicit rng: Random) =
+    Iterator.iterate(model)(modelStep).take(step)
+
 
   def modelConsoleDisplay(model: Ants, step: Int)(implicit rng: Random): Unit =
     Iterator.iterate(model)(modelStep).take(step).foreach: m =>
@@ -236,7 +245,7 @@ object Ants:
           if model.inNest(i)(j)
           then 'N'
           else
-            if model.food(i)(j) > 0
+            if model.food(i)(j)._2 > 0
             then model.food(i)(j).toString.charAt(0)
             else
               if model.chemical(i)(j) > 0.02
