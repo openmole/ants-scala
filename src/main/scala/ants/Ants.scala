@@ -69,7 +69,6 @@ object Ants:
     val inNest = Array.tabulate(worldWidth, worldHeight): (i, j) =>
       Math.sqrt(Math.pow(i.toDouble - xn * worldWidth, 2.0) + Math.pow(j.toDouble - yn * worldHeight, 2.0)) < nestRadius
 
-
     val nestScent =
       Array.tabulate(worldWidth, worldHeight): (i, j) =>
         nestMaxScent - Math.sqrt(Math.pow(i.toDouble - xn * worldWidth, 2.0) + Math.pow(j.toDouble - yn * worldHeight, 2.0))
@@ -194,7 +193,7 @@ object Ants:
           val curN = allN(n)
           val nx = curN(0)
           val ny = curN(1)
-          totalN += newVals(nx)(ny)
+          totalN += model.chemical(nx)(ny)
 
         // See https://github.com/NetLogo/NetLogo/blob/c02bff554418e513165332d095958b0c8e3f0fc7/netlogo-core/src/main/agent/Topology.scala#L159
         newVals(i)(j) = d + model.diffusionRate * (totalN / allN.length - d)
@@ -208,7 +207,7 @@ object Ants:
     loop(0, _ < model.worldWidth, _ + 1): i =>
       loop(0, _ < model.worldHeight, _ + 1): j =>
         val chem = model.chemical(i)(j)
-        model.chemical(i)(j) = model.chemical(i)(j) * (1 - model.evaporationRate)
+        model.chemical(i)(j) = chem * (1 - model.evaporationRate)
 
   def modelRun(model: Ants, step: Int)(implicit rng: Random): Ants =
     Iterator.iterate(model)(modelStep).drop(step - 1).next()

@@ -13,8 +13,8 @@ case class Ant(
 
 object Ant:
 
-  inline def angleModulo(a: Double) = (a % 360 + 360) % 360
-  inline def setAngle(ant: Ant, angle: Double) =
+  inline def angleModulo(inline a: Double) = (a % 360 + 360) % 360
+  inline def setAngle(inline ant: Ant, inline angle: Double) =
     ant.copy(angle = angleModulo(angle))
 
   /**
@@ -89,7 +89,7 @@ object Ant:
         if ant.foodCarried == 0.0
         then
           // look for food
-          if Ants.food(model, ant.x, ant.y) > 0.0
+          if Ants.food(model, ant.x, ant.y) > 0
           then
             // pick up food: modify food state var
             val (xi, yi) = (Math.floor(ant.x).toInt, Math.floor(ant.y).toInt)

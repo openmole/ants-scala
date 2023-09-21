@@ -14,8 +14,8 @@ import scala.util.Random
       i <- 0 until 100
     yield
       val model = Ants(
-        population = 125,
-        diffusionRate = 0.5,
+        population = 50,
+        diffusionRate = 0.1,
         evaporationRate = 0.1,
         worldWidth = 70,
         worldHeight = 70,
@@ -37,7 +37,7 @@ import scala.util.Random
   val model = Ants(
     population = 125,
     diffusionRate = 0.5,
-    evaporationRate = 0.1,
+    evaporationRate = 1,
     worldWidth = 70,
     worldHeight = 70,
     foodSourceRadius = 5
