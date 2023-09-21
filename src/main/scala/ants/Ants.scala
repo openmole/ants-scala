@@ -182,19 +182,16 @@ object Ants:
         val d = model.chemical(i)(j)
         if d > 0
         then
+          var totalN = 0.0
           val allN = model.neighborhoodCache(i)(j)
-
-          val diffused = (d * model.diffusionRate) / 8
-          var totalDiffused = 0.0
-
           loop(0, _ < allN.length, _ + 1): n =>
             val curN = allN(n)
             val nx = curN(0)
             val ny = curN(1)
-            totalDiffused += diffused
-            newVals(nx)(ny) = newVals(nx)(ny) + diffused
+            totalN += newVals(nx)(ny)
 
-          newVals(i)(j) = d - totalDiffused
+          // See https://github.com/NetLogo/NetLogo/blob/c02bff554418e513165332d095958b0c8e3f0fc7/netlogo-core/src/main/agent/Topology.scala#L159
+          newVals(i)(j) = d + model.diffusionRate * (totalN / 8 - d)
 
     model.chemical = newVals
 
@@ -212,6 +209,38 @@ object Ants:
   def modelRun(model: Ants, step: Int)(implicit rng: Random): Ants =
     Iterator.iterate(model)(modelStep).drop(step - 1).next()
 
+
+  def modelConsoleDisplay(model: Ants, step: Int)(implicit rng: Random): Unit =
+    Iterator.iterate(model)(modelStep).take(step).foreach: m =>
+
+      val buffer = display(m)
+      import com.github.tomaslanger.chalk.Ansi
+      //print(Ansi.eraseLine())
+      print(Ansi.eraseScreen())
+      //print(Ansi.cursorLeft(model.worldWidth))
+
+      println(buffer)
+      Thread.sleep(10)
+
+
+  def display(model: Ants) =
+    val buffer =
+      Array.tabulate[Char](model.worldWidth, model.worldHeight): (i, j) =>
+        val antsPosition = model.ants.map(a => (Math.floor(a.x).toInt, Math.floor(a.y).toInt)).toSet
+        if antsPosition.contains((i, j))
+        then 'a'
+        else
+          if model.inNest(i)(j)
+          then 'N'
+          else
+            if model.food(i)(j) > 0
+            then model.food(i)(j).toString.charAt(0)
+            else
+              if model.chemical(i)(j) > 0.02
+              then 'P'
+              else ' '
+
+    buffer.map(_.mkString).mkString("\n")
 
   /** standard C-style for loop */
   inline def loop[A](

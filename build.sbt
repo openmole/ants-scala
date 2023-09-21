@@ -4,6 +4,8 @@ version := "1.0"
 
 scalaVersion := "3.3.1"
 
+libraryDependencies += "com.github.tomas-langer" % "chalk" % "1.0.2"
+
 enablePlugins(SbtOsgi)
 
 OsgiKeys.exportPackage := Seq("ants.*")
