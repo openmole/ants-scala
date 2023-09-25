@@ -35,8 +35,8 @@ case class Ants(
   nestScent: Array[Array[Double]],
   inNest: Array[Array[Boolean]],
   neighborhoodCache: Array[Array[Array[Array[Int]]]],
-  //  antChemicalMin: Double,
-  //  antChemicalMax: Double,
+  chemicalPerceivedMin: Double,
+  chemicalPerceivedMax: Double,
   var chemical: Array[Array[Double]],
   var food: Array[Array[(Int, Int)]])
 
@@ -54,7 +54,9 @@ object Ants:
    nestMaxScent: Double = 200.0,
    foodSourceLocations: Array[(Double, Double)] = Array((0.8, 0.5), (0.2, 0.2), (0.1, 0.9)),
    foodSourceRadius: Double = 5.0,
-   chemicalDropUnit: Double = 60.0)(using rng: Random) =
+   chemicalDropUnit: Double = 60.0,
+   chemicalPerceivedMin: Double = 0.05,
+   chemicalPerceivedMax: Double = 2)(using rng: Random) =
 
     val xc: Double = worldWidth.toDouble / 2.0
     val yc: Double = worldHeight.toDouble / 2.0
@@ -110,6 +112,8 @@ object Ants:
       inNest = inNest,
       neighborhoodCache = neighborhoodCache,
       chemical = chemical,
+      chemicalPerceivedMin = chemicalPerceivedMin,
+      chemicalPerceivedMax = chemicalPerceivedMax,
       food = food)
 
 
@@ -131,10 +135,16 @@ object Ants:
   def totalFood(ants: Ants): Int = ants.food.flatten.map(_._2).sum
 
   def foodBySource(ants: Ants) =
+    val foods =
+      Array.ofDim[Int](ants.foodSourceLocations.length)
+
     for
-      i <- 0 until ants.foodSourceLocations.length
-    yield
-      ants.food.flatten.filter((s, _) => s == i).map((_, q) => q).sum
+      fx <- ants.food
+      (f, q) <- fx
+      if f >= 0
+    do foods(f) = foods(f) + q
+
+    foods
 
   def avgAntPosition(ants: Ants): (Double, Double) =
     (ants.ants.map(_.x).sum / ants.ants.length.toDouble, ants.ants.map(_.y).sum / ants.ants.length.toDouble)
@@ -215,12 +225,20 @@ object Ants:
         val chem = model.chemical(i)(j)
         model.chemical(i)(j) = chem * (1 - model.evaporationRate)
 
+
   def modelRun(model: Ants, step: Int)(implicit rng: Random): Ants =
     Iterator.iterate(model)(modelStep).drop(step - 1).next()
 
-  def modelStates(model: Ants, step: Int)(implicit rng: Random) =
-    Iterator.iterate(model)(modelStep).take(step)
+  case class Observable(
+    step: Int,
+    foodBySource: Seq[Int])
 
+  def computeObsevables(model: Ants, step: Int)(using Random) =
+    val res =
+      Iterator.iterate(model)(modelStep).take(step).zipWithIndex.flatMap: (s, i) =>
+        def observable = Observable(i, Ants.foodBySource(s))
+        if i % 10 == 0 then Some(observable) else None
+    res.toSeq
 
   def modelConsoleDisplay(model: Ants, step: Int)(implicit rng: Random): Unit =
     Iterator.iterate(model)(modelStep).take(step).foreach: m =>

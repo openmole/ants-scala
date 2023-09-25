@@ -33,17 +33,19 @@ import scala.util.Random
   implicit val rng: Random = new Random
 
   val time = System.currentTimeMillis()
-
   val model = Ants(
-    population = 125,
+    population = 50,
     diffusionRate = 0.5,
     evaporationRate = 0.1,
-    worldWidth = 70,
-    worldHeight = 70,
-    foodSourceRadius = 5
+    worldWidth = 40,
+    worldHeight = 40,
+    foodSourceRadius = 4
   )
-  Ants.modelStates(model, 1000).zipWithIndex.foreach: (s, i) =>
-    if i % 10 == 0 then println(Ants.foodBySource(s).mkString(","))
+  Ants.computeObsevables(model, 1000).foreach: o =>
+    println(s"${o.step},${o.foodBySource}")
+
+  val end = System.currentTimeMillis()
+  println(end - time)
 
 @main def display =
   implicit val rng: Random = new Random

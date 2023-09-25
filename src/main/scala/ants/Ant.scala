@@ -30,13 +30,13 @@ object Ant:
     else ant
 
 
-  inline def canMove(ant: Ant, d: Double)(using model: Ants): Boolean =
+  inline def canMove(inline ant: Ant, inline d: Double)(using inline model: Ants): Boolean =
     val xh = ant.x + d * Math.cos(Math.toRadians(ant.angle))
     val yh = ant.y + d * Math.sin(Math.toRadians(ant.angle))
     Ants.insideTheWord(xh, yh, model)
 
   // FIXME hardcoded wiggle parameters
-  def wiggle(ant: Ant)(implicit rng: Random, model: Ants): Ant =
+  inline def wiggle(ant: Ant)(implicit rng: Random, model: Ants): Ant =
     val newAngle = ant.angle + rng.nextInt(40) - rng.nextInt(40)
     val newAnt = setAngle(ant, newAngle)
     if !canMove(newAnt, 1.0)
@@ -99,7 +99,7 @@ object Ant:
           else
             // uphill chemical
             val c = Ants.chemical(model, ant.x, ant.y)
-            if c >= 0.05 && c < 2 // FIXME hardcoded parameters
+            if c >= model.chemicalPerceivedMin && c < model.chemicalPerceivedMax
             then uphill(ant, model.chemical)
             else ant
         else
