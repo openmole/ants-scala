@@ -1,2 +1,2 @@
-addSbtPlugin("com.typesafe.sbt" % "sbt-osgi" % "0.9.6")
+addSbtPlugin("org.openmole" % "sbt-osgi" % "0.9.10")
 
