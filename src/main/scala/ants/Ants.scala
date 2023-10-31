@@ -37,6 +37,8 @@ case class Ants(
   neighborhoodCache: Array[Array[Array[Array[Int]]]],
   chemicalPerceivedMin: Double,
   chemicalPerceivedMax: Double,
+  var collectedFood: Double,
+  var depositedChemicals: Double,
   var chemical: Array[Array[Double]],
   var food: Array[Array[(Int, Int)]])
 
@@ -114,7 +116,9 @@ object Ants:
       chemical = chemical,
       chemicalPerceivedMin = chemicalPerceivedMin,
       chemicalPerceivedMax = chemicalPerceivedMax,
-      food = food)
+      food = food,
+      collectedFood = 0,
+      depositedChemicals = 0)
 
 
   /**
@@ -149,7 +153,10 @@ object Ants:
   def avgAntPosition(ants: Ants): (Double, Double) =
     (ants.ants.map(_.x).sum / ants.ants.length.toDouble, ants.ants.map(_.y).sum / ants.ants.length.toDouble)
 
-
+  def antsOnChemicalTrace(ants: Ants) =
+    ants.ants.count: a =>
+      val c = ants.chemical(Math.floor(a.x).toInt)(Math.floor(a.y).toInt)
+      c > ants.chemicalPerceivedMin && c < ants.chemicalPerceivedMax
 
   /**
    * Model step:
@@ -231,12 +238,15 @@ object Ants:
 
   case class Observable(
     step: Int,
-    foodBySource: Seq[Int])
+    foodBySource: Seq[Int],
+    antsOnChemicalTrace: Int,
+    collectedFood: Double,
+    depositedChemicals: Double)
 
-  def computeObsevables(model: Ants, step: Int)(using Random) =
+  def computeObservables(model: Ants, step: Int)(using Random) =
     val res =
       Iterator.iterate(model)(modelStep).take(step).zipWithIndex.flatMap: (s, i) =>
-        def observable = Observable(i, Ants.foodBySource(s))
+        def observable = Observable(i, Ants.foodBySource(s), Ants.antsOnChemicalTrace(s), s.collectedFood, s.depositedChemicals)
         if i % 10 == 0 then Some(observable) else None
     res.toSeq
 

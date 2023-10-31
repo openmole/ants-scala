@@ -41,8 +41,8 @@ import scala.util.Random
     worldHeight = 40,
     foodSourceRadius = 4
   )
-  Ants.computeObsevables(model, 1000).foreach: o =>
-    println(s"${o.step},${o.foodBySource}")
+  Ants.computeObservables(model, 1000).foreach: o =>
+    println(s"${o.step},${o.foodBySource.mkString(",")},${o.collectedFood},${o.depositedChemicals},${o.antsOnChemicalTrace}")
 
   val end = System.currentTimeMillis()
   println(end - time)

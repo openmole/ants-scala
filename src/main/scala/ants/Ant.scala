@@ -107,10 +107,12 @@ object Ant:
           if Ants.inNest(model, ant)
           then
             // drop food and make a turn
+            model.collectedFood = model.collectedFood + ant.foodCarried
             setAngle(ant.copy(foodCarried = 0.0), ant.angle + 180.0)
           else
             // drop chemical and head towards nest
             val (xi, yi) = (Math.floor(ant.x).toInt, math.floor(ant.y).toInt)
+            model.depositedChemicals = model.depositedChemicals + chemicalDropUnit
             model.chemical(xi)(yi) = model.chemical(xi)(yi) + chemicalDropUnit
             uphill(ant, model.nestScent)
 
