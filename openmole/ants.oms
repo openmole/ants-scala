@@ -1,6 +1,3 @@
-
-// Laisser creer les variable et wrapper
-
 val seed = Val[Long]
 
 val diffusionRate = Val[Double]
