@@ -1,0 +1,62 @@
+
+// Laisser creer les variable et wrapper
+
+val seed = Val[Long]
+
+val diffusionRate = Val[Double]
+val evaporationRate = Val[Double]
+val chemicalPerceivedMin = Val[Double]
+val chemicalPerceivedMax = Val[Double]
+val chemicalDropUnit = Val[Double]
+val totalDepositedChemical = Val[Double]
+val totalCollectedFood = Val[Double]
+val averageAntsOnChemicalTrace = Val[Double]
+val timeOfConsumption = Val[Int]
+val randomLocation = Val[Boolean]
+
+val ants = 
+  ScalaTask("""
+    import ants.*
+    
+    val rng = Random(seed)
+    
+    def randomLocationValue = Array.fill(2)((rng.nextDouble(), rng.nextDouble()))
+    def fixLocationValue = Array((0.1, 0.1), (0.5, 0.3))
+    
+    val foodLocation = if randomLocation then randomLocationValue else fixLocationValue
+    
+    val model = Ants(
+      population = 50,
+      worldWidth = 50,
+      worldHeight = 50,
+      foodSourceRadius = 5,
+      diffusionRate = diffusionRate,
+      evaporationRate = evaporationRate,
+      chemicalPerceivedMin = chemicalPerceivedMin,
+      chemicalPerceivedMax = chemicalPerceivedMax,
+      chemicalDropUnit = chemicalDropUnit,
+      foodSourceLocations = foodLocation)(using rng)
+    
+    val res = Ants.computeObservables(model, 1000)(using rng)
+    
+    val foodAtStart = res.head.foodBySource.sum
+    val timeOfConsumption = 
+      res.find(_.foodBySource.sum <= foodAtStart * 0.2) match
+        case Some(t) => t.step
+        case None => 10000
+    val totalDepositedChemical = res.map(_.depositedChemicals).sum   
+    val totalCollectedFood = res.map(_.collectedFood).sum
+    val averageAntsOnChemicalTrace = res.map(_.antsOnChemicalTrace).average
+  """) set (
+    inputs += (seed, diffusionRate, evaporationRate, chemicalPerceivedMin, chemicalPerceivedMax, chemicalDropUnit),
+    outputs += (timeOfConsumption, totalDepositedChemical, totalCollectedFood, averageAntsOnChemicalTrace),
+    seed := 45,
+    diffusionRate := 0.5,
+    evaporationRate := 0.1,
+    chemicalPerceivedMin := 0.05,
+    chemicalPerceivedMax := 2,
+    chemicalDropUnit := 60,
+    randomLocation := true
+  )
+
+ants hook display
