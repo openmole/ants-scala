@@ -1,2 +1,2 @@
-addSbtPlugin("org.openmole" % "sbt-osgi" % "0.9.10")
+addSbtPlugin("com.github.sbt" % "sbt-osgi" % "0.11.0-RC1")
 

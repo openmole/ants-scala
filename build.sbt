@@ -2,7 +2,7 @@ name := "ants"
 
 version := "1.0"
 
-scalaVersion := "3.3.1"
+scalaVersion := "3.9.0"
 
 libraryDependencies += "com.github.tomas-langer" % "chalk" % "1.0.2"
 
